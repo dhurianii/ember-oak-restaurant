@@ -44,3 +44,4 @@ Then visit `http://localhost:8080`.
 - JavaScript logic review (tabs, mobile nav, form validation).
 - Reduced-motion behavior handled.
 - No automated browser tests were run in this environment.
+"# ember-oak-restaurant" 
