@@ -146,6 +146,16 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (validate()) {
+        const lines = [
+          'EMBER & OAK - Reservation request',
+          'Name: ' + form.name.value.trim(),
+          'Email: ' + form.email.value.trim(),
+          form.phone.value.trim() ? 'Phone: ' + form.phone.value.trim() : '',
+          'Date: ' + form.date.value,
+          'Time: ' + form.time.value,
+          'Guests: ' + form.guests.value,
+        ].filter(Boolean);
+        window.open('https://wa.me/9137079995?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener');
         success.hidden = false;
         form.reset();
         success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
