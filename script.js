@@ -46,6 +46,7 @@
       });
       panels.forEach((p) => {
         const active = p.dataset.category === cat;
+        p.classList.toggle('is-active', active);
         if (active) {
           p.hidden = false;
           const animate = window.__motionAnimate;
@@ -132,7 +133,7 @@
           'Time: ' + form.time.value,
           'Guests: ' + form.guests.value,
         ].filter(Boolean);
-        window.open('https://wa.me/9137079995?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener');
+        window.open('https://wa.me/9137079995?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener,noreferrer');
         success.hidden = false;
         form.reset();
         if (window.__motionAnimate && !reduced) {
