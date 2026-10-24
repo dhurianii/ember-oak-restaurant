@@ -46,8 +46,15 @@
       });
       panels.forEach((p) => {
         const active = p.dataset.category === cat;
-        p.classList.toggle('is-active', active);
-        p.hidden = !active;
+        if (active) {
+          p.hidden = false;
+          const animate = window.__motionAnimate;
+          if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            animate(p, { opacity: [0, 1], y: [12, 0] }, { duration: 0.4, easing: 'ease-out' });
+          }
+        } else {
+          p.hidden = true;
+        }
       });
     });
     tab.addEventListener('keydown', (e) => {
@@ -57,41 +64,13 @@
     });
   });
 
-  // Reveal animations
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const reveals = document.querySelectorAll('.reveal');
-  if (!reduced && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('in');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    reveals.forEach((el) => io.observe(el));
-  } else {
-    reveals.forEach((el) => el.classList.add('in'));
-  }
 
-  // Mark reveal targets (add class via JS so base HTML stays clean)
-  document.querySelectorAll('section > .container, .experience, .dish, .story-image, .philo-image').forEach((el) => {
-    el.classList.add('reveal');
+  // Mark reveal targets
+  const revealTargets = ['section > .container', '.experience', '.dish', '.story-image', '.philo-image'];
+  revealTargets.forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => el.classList.add('reveal'));
   });
-  // Re-run observation after adding classes
-  if (!reduced && 'IntersectionObserver' in window) {
-    const io2 = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('in');
-          io2.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach((el) => {
-      if (!el.classList.contains('in')) io2.observe(el);
-    });
-  }
 
   // Reservation form
   const form = document.getElementById('reserveForm');
@@ -118,7 +97,6 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('email', 'Please enter a valid email address.'); ok = false; }
     else setError('email', '');
 
-    // phone optional but basic check if provided
     const phone = form.phone.value.trim();
     if (phone && phone.replace(/[^0-9]/g, '').length < 7) { setError('phone', 'Please enter a valid phone number or leave blank.'); ok = false; }
     else setError('phone', '');
@@ -139,7 +117,6 @@
 
   if (form) {
     form.addEventListener('input', (e) => {
-      // clear error on input for that field
       const target = e.target;
       if (target && target.name) setError(target.name, '');
     });
@@ -158,9 +135,11 @@
         window.open('https://wa.me/9137079995?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener');
         success.hidden = false;
         form.reset();
-        success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (window.__motionAnimate && !reduced) {
+          window.__motionAnimate(success, { opacity: [0, 1], y: [12, 0] }, { duration: 0.5, easing: 'ease-out' });
+        }
+        success.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
       } else {
-        // focus first invalid
         const firstInvalid = form.querySelector('[aria-invalid="true"]');
         if (firstInvalid) firstInvalid.focus();
       }
@@ -171,4 +150,77 @@
   if (reduced) {
     document.documentElement.style.scrollBehavior = 'auto';
   }
+
+  // ---- Motion-powered animations (CDN ESM build) ----
+  async function setupMotion() {
+    const revealEls = [...document.querySelectorAll('.reveal')];
+
+    if (reduced) {
+      revealEls.forEach((el) => el.classList.add('in'));
+      return;
+    }
+
+    let motion = null;
+    try {
+      motion = await import('https://esm.sh/motion@14');
+    } catch (err) {
+      motion = null;
+    }
+
+    if (motion && typeof motion.animate === 'function' && typeof motion.inView === 'function') {
+      const { animate, inView } = motion;
+      window.__motionAnimate = animate;
+
+      // Hero entrance
+      const heroChildren = [...document.querySelectorAll('.hero-content > *')];
+      if (heroChildren.length) {
+      try {
+        animate(heroChildren, { opacity: [0, 1], y: [24, 0] }, {
+          duration: 0.9,
+          delay: (i) => i * 0.12,
+          easing: 'ease-out',
+        });
+      } catch (e) {
+        // Fall through; reveals below still animate.
+      }
+      }
+
+      // Scroll-triggered reveals
+      inView('.reveal', (info) => {
+        animate(info.target, { opacity: [0, 1], y: [28, 0] }, {
+          duration: 0.9,
+          easing: [0.22, 1, 0.36, 1],
+        });
+        info.target.classList.add('in');
+      }, { margin: '0px 0px -40px 0px', amount: 0.12 });
+
+      // Safety net: ensure nothing stays invisible if inView misses
+      setTimeout(() => {
+        document.querySelectorAll('.reveal:not(.in)').forEach((el) => {
+          animate(el, { opacity: [0, 1], y: [28, 0] }, { duration: 0.6, easing: 'ease-out' });
+          el.classList.add('in');
+        });
+      }, 1500);
+    } else {
+      // Fallback to CSS transition + IntersectionObserver
+      document.body.classList.add('css-reveal');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('in');
+              io.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        revealEls.forEach((el) => {
+          if (!el.classList.contains('in')) io.observe(el);
+        });
+      } else {
+        revealEls.forEach((el) => el.classList.add('in'));
+      }
+    }
+  }
+
+  setupMotion();
 })();

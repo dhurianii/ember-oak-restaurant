@@ -17,7 +17,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:84px;color-scheme:light}
 body{font-family:var(--font-body);background:var(--ivory);color:var(--charcoal);line-height:1.6;-webkit-font-smoothing:antialiased}
-body.has-motion .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+body.has-motion .reveal{opacity:0;transform:translateY(28px)}
+body.has-motion.css-reveal .reveal{transition:opacity .9s var(--ease),transform .9s var(--ease)}
 body.has-motion .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}body.has-motion .reveal{opacity:1;transform:none;transition:none}}
 
@@ -155,6 +156,7 @@ p{font-size:1.05rem;max-width:62ch}
 .field label{display:block;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;color:var(--ivory);opacity:.85}
 .field input,.field select{width:100%;background:transparent;border:0;border-bottom:1px solid rgba(244,240,232,.25);padding:10px 0;font-family:var(--font-body);font-size:1rem;color:var(--ivory);transition:border-color .3s}
 .field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
+.field select option{background:#fff;color:#111}
 .field .error{display:block;min-height:1.2em;margin-top:6px;font-size:.8rem;color:#e0a0a0}
 .field-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px}
 .form-success{margin-top:20px;padding:14px 18px;background:rgba(183,154,102,.15);border:1px solid var(--gold);color:var(--ivory);font-size:.9rem}
