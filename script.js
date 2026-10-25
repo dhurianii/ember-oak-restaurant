@@ -104,9 +104,11 @@
 
     if (!date) { setError('date', 'Please choose a date.'); ok = false; }
     else {
-      const d = new Date(date);
+      const parts = date.split('-').map(Number);
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
       const today = new Date(); today.setHours(0,0,0,0);
       if (d < today) { setError('date', 'Date must be today or later.'); ok = false; }
+      else if (d.getDay() === 1) { setError('date', 'We are closed on Mondays. Please choose Tue–Sun.'); ok = false; }
       else setError('date', '');
     }
     if (!time) { setError('time', 'Please choose a time.'); ok = false; }
@@ -117,6 +119,12 @@
   }
 
   if (form) {
+    const dateInput = form.querySelector('input[name="date"]');
+    if (dateInput) {
+      const t = new Date();
+      const iso = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+      dateInput.min = iso;
+    }
     form.addEventListener('input', (e) => {
       const target = e.target;
       if (target && target.name) setError(target.name, '');
@@ -133,13 +141,14 @@
           'Time: ' + form.time.value,
           'Guests: ' + form.guests.value,
         ].filter(Boolean);
-        window.open('https://wa.me/9137079995?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener,noreferrer');
+        window.open('https://wa.me/10000000000?text=' + encodeURIComponent(lines.join(String.fromCharCode(10))), '_blank', 'noopener,noreferrer');
         success.hidden = false;
         form.reset();
         if (window.__motionAnimate && !reduced) {
           window.__motionAnimate(success, { opacity: [0, 1], y: [12, 0] }, { duration: 0.5, easing: 'ease-out' });
         }
         success.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+        if (typeof success.focus === 'function') success.focus();
       } else {
         const firstInvalid = form.querySelector('[aria-invalid="true"]');
         if (firstInvalid) firstInvalid.focus();
